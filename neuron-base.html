@@ -1,18 +1,19 @@
-<polymer-element name="neuron-base" attributes="name defaultSize">
+<polymer-element name="neuron-base" attributes="name defaultSize initialValue">
 	<template>
 	</template>
 
 	<script>
 		Polymer({
-			
+
 			defaultSize: 1,
+			initialValue: 0,
 
 			ready: function(){
 				this.neuronValues = [];
 				this.elems = [];
 
 				for(var i = 0; i< this.defaultSize; i++){
-					this.neuronValues.push(0);
+					this.neuronValues.push(this.initialValue);
 					this.elems.push(1);
 				}
 
@@ -28,13 +29,15 @@
 					while(this.elems.length > neuron.size) this.elems.pop();
 
 					while(this.neuronValues.length < neuron.size) {
-						this.neuronValues.push(0);
+						this.neuronValues.push(this.initialValue);
 						this.elems.push(1);
 					}
 				}
 
-				if(this.toggle){
+				if(neuron.type === 'output'){
 					this.sendAll();
+				}else if(neuron.type === 'input'){
+					neuron.on('value', this.onMessage.bind(this));
 				}
 			},
 
@@ -57,6 +60,12 @@
 					that.neuronValues[neuronId] = 0;
 					that.neuron.writeAll(that.neuronValues);
 				}, 500);
+			},
+
+			onMessage: function(value){
+				for(var i=0;i<value.length; i++){
+					this.neuronValues[i] = value[i];
+				}
 			}
 		});
 
