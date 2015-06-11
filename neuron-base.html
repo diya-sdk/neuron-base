@@ -17,12 +17,21 @@
 					this.elems.push(1);
 				}
 
+				this.neuron = null;
+
+			},
+
+			isConnected: function(){
+				return this.neuron ? true : false;
 			},
 
 			setNeuron: function(dnId, neuron){
 				this.neuron = neuron;
 
 				if(!neuron) return ;
+
+				neuron.on('close', this.onClose.bind(this));
+
 
 				if(this.defaultSize !== neuron.size){
 					while(this.neuronValues.length > neuron.size) this.neuronValues.pop();
@@ -37,7 +46,7 @@
 				if(neuron.type === 'output'){
 					this.sendAll();
 				}else if(neuron.type === 'input'){
-					neuron.on('value', this.onMessage.bind(this));
+					neuron.on('value', this.onValue.bind(this));
 				}
 			},
 
@@ -62,10 +71,15 @@
 				}, 500);
 			},
 
-			onMessage: function(value){
+			onValue: function(value){
 				for(var i=0;i<value.length; i++){
 					this.neuronValues[i] = value[i];
 				}
+			},
+
+			onClose: function(){
+				console.log(this.neuron.name +" closed !");
+				this.neuron = null;
 			}
 		});
 
