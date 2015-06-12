@@ -75,6 +75,7 @@
 				for(var i=0;i<value.length; i++){
 					this.neuronValues[i] = value[i];
 				}
+				this.fire('value', this.neuronValues);
 			},
 
 			onClose: function(){
