@@ -1,4 +1,4 @@
-<polymer-element name="neuron-base" attributes="name defaultSize initialValue">
+<polymer-element name="neuron-base" attributes="name defaultSize initialValue state">
 	<template>
 	</template>
 
@@ -18,6 +18,7 @@
 				}
 
 				this.neuron = null;
+				this.state = 'disconnected';
 
 			},
 
@@ -29,6 +30,8 @@
 				this.neuron = neuron;
 
 				if(!neuron) return ;
+
+				this.state = 'connected';
 
 				neuron.on('close', this.onClose.bind(this));
 
@@ -81,6 +84,7 @@
 			onClose: function(){
 				console.log(this.neuron.name +" closed !");
 				this.neuron = null;
+				this.state = 'disconnected';
 			}
 		});
 
