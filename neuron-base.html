@@ -20,6 +20,8 @@
 				this.neuron = null;
 				this.state = 'disconnected';
 
+				this.autosend = false;
+				this.frequency = 20;
 			},
 
 			isConnected: function(){
@@ -30,6 +32,9 @@
 				this.neuron = neuron;
 
 				if(!neuron) return ;
+
+				neuron.autosend = this.autosend;
+				neuron.frequency = this.frequency;
 
 				this.state = 'connected';
 
@@ -62,7 +67,7 @@
 				this.neuron.writeAll(this.neuronValues);
 			},
 
-			sendEvent: function(neuronId){
+			sendEvent: function(neuronId, period){
 				var that = this;
 
 				this.neuronValues[neuronId] = 1;
@@ -71,7 +76,7 @@
 				setTimeout(function(){
 					that.neuronValues[neuronId] = 0;
 					that.neuron.writeAll(that.neuronValues);
-				}, 500);
+				}, period || 500);
 			},
 
 			onValue: function(value){
