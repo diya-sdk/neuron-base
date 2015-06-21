@@ -56,6 +56,8 @@
 				}else if(neuron.type === 'input'){
 					neuron.on('value', this.onValue.bind(this));
 				}
+
+				this.fire('state-changed', this.state);
 			},
 
 			sendAll: function(){
@@ -90,6 +92,7 @@
 				console.log(this.neuron.name +" closed !");
 				this.neuron = null;
 				this.state = 'disconnected';
+				this.fire('state-changed', this.state);
 			}
 		});
 
