@@ -1,100 +1,98 @@
-<polymer-element name="neuron-base" attributes="name defaultSize initialValue state">
-	<template>
-	</template>
+<script>
+ 	window.DiyaBehaviors = window.DiyaBehaviors || {};
+	DiyaBehaviors.Neuron = {
+    	properties: {
+      		defaultSize: { type: Number, value: 1, notify: true},
+      		initialValue: { type: Number, value: 0, notify: true},
+      		name: { notify: true },
+      		state: { notify: true }
+    	},
 
-	<script>
-		Polymer({
+    	ready: function () {
+      		this.neuronValues = [];
+      		this.elems = [];
+      		for (var i = 0; i < this.defaultSize; i++) {
+        		this.neuronValues.push(this.initialValue);
+        		this.elems.push(1);
+      		}
+      		this.neuron = null;
+      		this.state = 'disconnected';
+      		this.autosend = false;
+      		this.frequency = 20;
+    	},
 
-			defaultSize: 1,
-			initialValue: 0,
+    	isConnected: function () {
+      		return this.neuron ? true : false;
+    	},
 
-			ready: function(){
-				this.neuronValues = [];
-				this.elems = [];
+    	setNeuron: function (dnId, neuron) {
+      		this.neuron = neuron;
+      		if (!neuron) return;
 
-				for(var i = 0; i< this.defaultSize; i++){
-					this.neuronValues.push(this.initialValue);
-					this.elems.push(1);
-				}
+			neuron.autosend = this.autosend;
+      		neuron.frequency = this.frequency;
+      		this.state = 'connected';
 
-				this.neuron = null;
-				this.state = 'disconnected';
+			neuron.on('close', this.onClose.bind(this));
+      		if (this.defaultSize !== neuron.size) {
+        		while (this.neuronValues.length > neuron.size)
+          			this.neuronValues.pop();
+        		while (this.elems.length > neuron.size)
+          			this.elems.pop();
+        		while (this.neuronValues.length < neuron.size) {
+          			this.neuronValues.push(this.initialValue);
+          			this.elems.push(1);
+        		}
+      		}
+      		if (neuron.type === 'output') {
+        		this.sendAll();
+      		} else if (neuron.type === 'input') {
+        		neuron.on('value', this.onValue.bind(this));
+      		}
+      		this.fire('state-changed', this.state);
+    	},
 
-				this.autosend = false;
-				this.frequency = 20;
-			},
+    	sendAll: function () {
+      		this.neuron.writeAll(this.neuronValues);
+    	},
 
-			isConnected: function(){
-				return this.neuron ? true : false;
-			},
+    	send: function (neuronId, val) {
+      		this.neuronValues[neuronId] = val;
+      		this.neuron.writeAll(this.neuronValues);
+    	},
 
-			setNeuron: function(dnId, neuron){
-				this.neuron = neuron;
+    	sendEvent: function (neuronId, period) {
+      		var that = this;
+      		this.neuronValues[neuronId] = 1;
+      		this.neuron.writeAll(this.neuronValues);
 
-				if(!neuron) return ;
+			setTimeout(function () {
+        		that.neuronValues[neuronId] = 0;
+        		that.neuron.writeAll(that.neuronValues);
+      		}, period || 500);
+    	},
 
-				neuron.autosend = this.autosend;
-				neuron.frequency = this.frequency;
+    	onValue: function (value) {
+      		for (var i = 0; i < value.length; i++) {
+        		this.neuronValues[i] = value[i];
+      		}
+      		this.fire('value', this.neuronValues);
+    	},
 
-				this.state = 'connected';
+    	onClose: function () {
+      		console.log(this.neuron.name + ' closed !');
+      		this.neuron = null;
+      		this.state = 'disconnected';
+      		this.fire('state-changed', this.state);
+    	}
+  };
+</script>
 
-				neuron.on('close', this.onClose.bind(this));
-
-
-				if(this.defaultSize !== neuron.size){
-					while(this.neuronValues.length > neuron.size) this.neuronValues.pop();
-					while(this.elems.length > neuron.size) this.elems.pop();
-
-					while(this.neuronValues.length < neuron.size) {
-						this.neuronValues.push(this.initialValue);
-						this.elems.push(1);
-					}
-				}
-
-				if(neuron.type === 'output'){
-					this.sendAll();
-				}else if(neuron.type === 'input'){
-					neuron.on('value', this.onValue.bind(this));
-				}
-
-				this.fire('state-changed', this.state);
-			},
-
-			sendAll: function(){
-				this.neuron.writeAll(this.neuronValues);
-			},
-
-			send: function(neuronId, val){
-				this.neuronValues[neuronId] = val;
-				this.neuron.writeAll(this.neuronValues);
-			},
-
-			sendEvent: function(neuronId, period){
-				var that = this;
-
-				this.neuronValues[neuronId] = 1;
-				this.neuron.writeAll(this.neuronValues);
-
-				setTimeout(function(){
-					that.neuronValues[neuronId] = 0;
-					that.neuron.writeAll(that.neuronValues);
-				}, period || 500);
-			},
-
-			onValue: function(value){
-				for(var i=0;i<value.length; i++){
-					this.neuronValues[i] = value[i];
-				}
-				this.fire('value', this.neuronValues);
-			},
-
-			onClose: function(){
-				console.log(this.neuron.name +" closed !");
-				this.neuron = null;
-				this.state = 'disconnected';
-				this.fire('state-changed', this.state);
-			}
-		});
-
-	</script>
-</polymer-element>
+<dom-module id="neuron-base">
+</dom-module>
+<script>
+	Polymer({
+		is: 'neuron-base',
+		behaviors: [DiyaBehaviors.Neuron]
+	});
+</script>
