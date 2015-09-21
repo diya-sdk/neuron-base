@@ -10,10 +10,8 @@
 
     	ready: function () {
       		this.neuronValues = [];
-      		this.elems = [];
-      		for (var i = 0; i < this.defaultSize; i++) {
+      		for(var i = 0; i < this.defaultSize; i++) {
         		this.neuronValues.push(this.initialValue);
-        		this.elems.push(1);
       		}
       		this.neuron = null;
       		this.state = 'disconnected';
@@ -29,19 +27,17 @@
       		this.neuron = neuron;
       		if (!neuron) return;
 
-			neuron.autosend = this.autosend;
+		neuron.autosend = this.autosend;
       		neuron.frequency = this.frequency;
       		this.state = 'connected';
 
 			neuron.on('close', this.onClose.bind(this));
       		if (this.defaultSize !== neuron.size) {
-        		while (this.neuronValues.length > neuron.size)
+			while (this.neuronValues.length > neuron.size){
           			this.neuronValues.pop();
-        		while (this.elems.length > neuron.size)
-          			this.elems.pop();
+			 }
         		while (this.neuronValues.length < neuron.size) {
           			this.neuronValues.push(this.initialValue);
-          			this.elems.push(1);
         		}
       		}
       		if (neuron.type === 'output') {
