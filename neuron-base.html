@@ -3,15 +3,15 @@
 	DiyaBehaviors.Neuron = {
     	properties: {
       		defaultSize: { type: Number, value: 1, notify: true},
+		neuronValues: {type: Array, value: function(){ return []; }, notify: true},
       		initialValue: { type: Number, value: 0, notify: true},
       		name: { notify: true },
       		state: { notify: true }
     	},
 
     	ready: function () {
-      		this.neuronValues = [];
       		for(var i = 0; i < this.defaultSize; i++) {
-        		this.neuronValues.push(this.initialValue);
+        		this.push('neuronValues',this.initialValue);
       		}
       		this.neuron = null;
       		this.state = 'disconnected';
@@ -24,6 +24,7 @@
     	},
 
     	setNeuron: function (dnId, neuron) {
+		var that = this;
       		this.neuron = neuron;
       		if (!neuron) return;
 
@@ -31,21 +32,22 @@
       		neuron.frequency = this.frequency;
       		this.state = 'connected';
 
-			neuron.on('close', this.onClose.bind(this));
+		neuron.on('close', this.onClose.bind(this));
       		if (this.defaultSize !== neuron.size) {
 			while (this.neuronValues.length > neuron.size){
-          			this.neuronValues.pop();
+          			this.pop('neuronValues');
 			 }
         		while (this.neuronValues.length < neuron.size) {
-          			this.neuronValues.push(this.initialValue);
+          			this.push('neuronValues', this.initialValue);
         		}
       		}
       		if (neuron.type === 'output') {
-        		this.sendAll();
+			setTimeout(function(){
+				that.sendAll();
+			}, 100);
       		} else if (neuron.type === 'input') {
         		neuron.on('value', this.onValue.bind(this));
       		}
-      		this.fire('state-changed', this.state);
     	},
 
     	sendAll: function () {
@@ -54,15 +56,15 @@
 
     	send: function (neuronId, val) {
       		this.neuronValues[neuronId] = val;
-      		this.neuron.writeAll(this.neuronValues);
-    	},
+		this.neuron.writeAll(this.neuronValues);
+    	},	
 
     	sendEvent: function (neuronId, period) {
       		var that = this;
       		this.neuronValues[neuronId] = 1;
       		this.neuron.writeAll(this.neuronValues);
 
-			setTimeout(function () {
+		setTimeout(function () {
         		that.neuronValues[neuronId] = 0;
         		that.neuron.writeAll(that.neuronValues);
       		}, period || 500);
@@ -70,16 +72,14 @@
 
     	onValue: function (value) {
       		for (var i = 0; i < value.length; i++) {
-        		this.neuronValues[i] = value[i];
+        		this.splice('neuronValues', i, 1, value[i]);
       		}
-      		this.fire('value', this.neuronValues);
     	},
 
     	onClose: function () {
       		console.log(this.neuron.name + ' closed !');
       		this.neuron = null;
       		this.state = 'disconnected';
-      		this.fire('state-changed', this.state);
     	}
   };
 </script>
