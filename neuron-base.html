@@ -23,6 +23,11 @@
       		return this.neuron ? true : false;
     	},
 
+	setAutoSend: function(value){
+		this.autosend = value;
+		if(this.neuron) this.neuron.autosend = value;
+	},
+
     	setNeuron: function (dnId, neuron) {
 		var that = this;
       		this.neuron = neuron;
