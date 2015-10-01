@@ -79,6 +79,7 @@
       		for (var i = 0; i < value.length; i++) {
         		this.splice('neuronValues', i, 1, value[i]);
       		}
+		this.fire('value', {values: this.neuronValues});
     	},
 
     	onClose: function () {
