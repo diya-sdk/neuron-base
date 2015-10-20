@@ -37,15 +37,16 @@
       		neuron.frequency = this.frequency;
       		this.state = 'connected';
 
-		neuron.on('close', this.onClose.bind(this));
-      		if (this.defaultSize !== neuron.size) {
-			while (this.neuronValues.length > neuron.size){
-          			this.pop('neuronValues');
-			 }
-        		while (this.neuronValues.length < neuron.size) {
-          			this.push('neuronValues', this.initialValue);
-        		}
-      		}
+          neuron.on('close', this.onClose.bind(this));
+          if (this.defaultSize !== neuron.size) {
+            while (this.neuronValues.length > neuron.size){
+              this.pop('neuronValues');
+            }
+            while (this.neuronValues.length < neuron.size) {
+              alert("prout"+this.initialValue);
+              this.push('neuronValues', this.initialValue);
+            }
+          }
       		if (neuron.type === 'output') {
 			setTimeout(function(){
 				that.sendAll();
@@ -62,7 +63,7 @@
     	send: function (neuronId, val) {
       		this.neuronValues[neuronId] = val;
 		this.neuron.writeAll(this.neuronValues);
-    	},	
+    	},
 
     	sendEvent: function (neuronId, period) {
       		var that = this;
