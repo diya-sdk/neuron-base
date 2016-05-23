@@ -76,9 +76,11 @@
     	},
 
     	onValue: function (value) {
+		//TODO : EXTREMELY SLOW FOR BIG NEURON GROUPS !!!
       		for (var i = 0; i < value.length; i++) {
         		this.splice('neuronValues', i, 1, value[i]);
       		}
+//		this.set('neuronValues', value); // THIS IS MORE EFFICIENT BUT BINDINGS ARE NOT HANDLED PROPERLY
 		this.fire('value', {values: this.neuronValues});
     	},
 
