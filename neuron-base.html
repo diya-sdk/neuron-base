@@ -1,95 +1,108 @@
 <script>
- 	window.DiyaBehaviors = window.DiyaBehaviors || {};
-	DiyaBehaviors.Neuron = {
-    	properties: {
-      		defaultSize: { type: Number, value: 1, notify: true},
+	window.DiyaBehaviors = window.DiyaBehaviors || {};
+DiyaBehaviors.Neuron = {
+	properties: {
+		defaultSize: { type: Number, value: 1, notify: true},
 		neuronValues: {type: Array, value: function(){ return []; }, notify: true},
-      		initialValue: { type: Number, value: 0, notify: true},
-      		name: { notify: true },
-      		state: { notify: true }
-    	},
+		initialValue: { type: Number, value: 0, notify: true},
+		name: { notify: true },
+		state: { notify: true }
+	},
 
-    	ready: function () {
-      		for(var i = 0; i < this.defaultSize; i++) {
-        		this.push('neuronValues',this.initialValue);
-      		}
-      		this.neuron = null;
-      		this.state = 'disconnected';
-      		this.autosend = false;
-      		this.frequency = 20;
-    	},
+	ready: function () {
+		for(var i = 0; i < this.defaultSize; i++) {
+			this.push('neuronValues',this.initialValue);
+		}
+		this.neuron = null;
+		this.state = 'disconnected';
+		this.autosend = false;
+		this.frequency = 20;
 
-    	isConnected: function () {
-      		return this.neuron ? true : false;
-    	},
+		this.onCloseCallback = this.onClose.bind(this);
+	},
+
+	isConnected: function () {
+		return this.neuron ? true : false;
+	},
 
 	setAutoSend: function(value){
 		this.autosend = value;
 		if(this.neuron) this.neuron.autosend = value;
 	},
 
-    	setNeuron: function (dnId, neuron) {
+	setNeuron: function (dnId, neuron) {
 		var that = this;
-      		this.neuron = neuron;
-      		if (!neuron) return;
+		if(this.neuron && !neuron) {
+			this.close();
+			return ;
+		}
+		this.neuron = neuron;
 
 		neuron.autosend = this.autosend;
-      		neuron.frequency = this.frequency;
-      		this.state = 'connected';
+		neuron.frequency = this.frequency;
+		this.state = 'connected';
 
-          neuron.on('close', this.onClose.bind(this));
-          if (this.defaultSize !== neuron.size) {
-            while (this.neuronValues.length > neuron.size){
-              this.pop('neuronValues');
-            }
-            while (this.neuronValues.length < neuron.size) {
-              this.push('neuronValues', this.initialValue);
-            }
-          }
-      		if (neuron.type === 'output') {
+		neuron.on('close', this.onCloseCallback);
+		if (this.defaultSize !== neuron.size) {
+			while (this.neuronValues.length > neuron.size){
+				this.pop('neuronValues');
+			}
+			while (this.neuronValues.length < neuron.size) {
+				this.push('neuronValues', this.initialValue);
+			}
+		}
+		if (neuron.type === 'output') {
 			setTimeout(function(){
 				that.sendAll();
 			}, 100);
-      		} else if (neuron.type === 'input') {
-        		neuron.on('value', this.onValue.bind(this));
-      		}
-    	},
+		} else if (neuron.type === 'input') {
+			neuron.on('value', this.onValue.bind(this));
+		}
+	},
 
-    	sendAll: function () {
-      		this.neuron.writeAll(this.neuronValues);
-    	},
-
-    	send: function (neuronId, val) {
-      		this.neuronValues[neuronId] = val;
+	sendAll: function () {
 		this.neuron.writeAll(this.neuronValues);
-    	},
+	},
 
-    	sendEvent: function (neuronId, period) {
-      		var that = this;
-      		this.neuronValues[neuronId] = 1;
-      		this.neuron.writeAll(this.neuronValues);
+	send: function (neuronId, val) {
+		this.neuronValues[neuronId] = val;
+		this.neuron.writeAll(this.neuronValues);
+	},
+
+	sendEvent: function (neuronId, period) {
+		var that = this;
+		this.neuronValues[neuronId] = 1;
+		this.neuron.writeAll(this.neuronValues);
 
 		setTimeout(function () {
-        		that.neuronValues[neuronId] = 0;
-        		that.neuron.writeAll(that.neuronValues);
-      		}, period || 500);
-    	},
+			that.neuronValues[neuronId] = 0;
+			that.neuron.writeAll(that.neuronValues);
+		}, period || 500);
+	},
 
-    	onValue: function (value) {
+	onValue: function (value) {
 		/*//TODO : EXTREMELY SLOW FOR BIG NEURON GROUPS !!!
-      		for (var i = 0; i < value.length; i++) {
-        		this.splice('neuronValues', i, 1, value[i]);
-      		}*/
+		for (var i = 0; i < value.length; i++) {
+			this.splice('neuronValues', i, 1, value[i]);
+		}*/
 		this.set('neuronValues', value); // THIS IS MORE EFFICIENT BUT BINDINGS ARE NOT HANDLED PROPERLY
 		this.fire('value', {values: this.neuronValues});
-    	},
+	},
 
-    	onClose: function () {
-      		console.log(this.neuron.name + ' closed !');
-      		this.neuron = null;
-      		this.state = 'disconnected';
-    	}
-  };
+	onClose: function () {
+		this.close();
+	},
+
+	close: function() {
+		if(this.state !== 'disconnected') {
+			this.neuron.close();
+			this.neuron.removeListener('close', this.onCloseCallback);
+			console.log(this.neuron.name + ' closed !');
+		}
+		this.neuron = null;
+		this.state = 'disconnected';
+	}
+};
 </script>
 
 <dom-module id="neuron-base">
