@@ -6,7 +6,9 @@ DiyaBehaviors.Neuron = {
 		neuronValues: {type: Array, value: function(){ return []; }, notify: true},
 		initialValue: { type: Number, value: 0, notify: true},
 		name: { notify: true },
-		state: { notify: true }
+		state: { notify: true },
+		autosend: { type: Boolean, value: false, notify: false },
+		frequency: { type: Number, value: 20, notify: false }
 	},
 
 	ready: function () {
@@ -15,8 +17,6 @@ DiyaBehaviors.Neuron = {
 		}
 		this.neuron = null;
 		this.state = 'disconnected';
-		this.autosend = false;
-		this.frequency = 20;
 
 		this.onCloseCallback = this.onClose.bind(this);
 	},
