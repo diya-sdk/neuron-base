@@ -61,24 +61,29 @@ DiyaBehaviors.Neuron = {
 	},
 
 	sendAll: function () {
-		this.neuron.writeAll(this.neuronValues);
+		this._writeAll(this.neuron, this.neuronValues)
 	},
 
 	send: function (neuronId, val) {
 		this.neuronValues[neuronId] = val;
-		if (this.neuron)
-			this.neuron.writeAll(this.neuronValues);
+		this._writeAll(this.neuron, this.neuronValues)
 	},
 
 	sendEvent: function (neuronId, period) {
 		var that = this;
 		this.neuronValues[neuronId] = 1;
-		this.neuron.writeAll(this.neuronValues);
+		this._writeAll(this.neuron, this.neuronValues);
 
 		setTimeout(function () {
 			that.neuronValues[neuronId] = 0;
-			that.neuron.writeAll(that.neuronValues);
+			that._writeAll(that.neuron, that.neuronValues);
 		}, period || 500);
+	},
+
+	_writeAll: function (neurons, values) {
+		if (neurons != null) {
+			neurons.writeAll(values);
+		}
 	},
 
 	onValue: function (value) {
